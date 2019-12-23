@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  publish-latest:
+    docker:
+    - image: circleci/buildpack-deps:stretch
+    steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Build Docker image
+        command: |
+          HASH=$(git rev-parse HEAD)
+          docker build -t $DOCKERHUB_IMAGE_NAME:$HASH .
+    - run:
+        name: Publish Docker Image to Docker Hub
+        command: |
+          HASH=$(git rev-parse HEAD)
+          echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          docker push $DOCKERHUB_IMAGE_NAME:$HASH
+workflows:
+  version: 2
+  build-master:
+    jobs:
+    - publish-latest:
+        filters:
+          branches:
+            only:
+              - assignment5
+              - master
+              - assignment6
+              
